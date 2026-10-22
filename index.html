@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<title>紫ビューア</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="紫ビューア">
+<meta name="theme-color" content="#0e0e10">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="stylesheet" href="style.css">
+<script src="https://embed.twitch.tv/embed/v1.js"></script>
+</head>
+<body>
+
+<!-- home -->
+<section id="home" class="view">
+  <header class="top">
+    <h1>チャンネル</h1>
+    <div class="actions">
+      <button id="btnRefresh" class="link">更新</button>
+      <button id="btnSettings" class="link">設定</button>
+    </div>
+  </header>
+  <div class="search">
+    <input id="search" type="search" placeholder="チャンネルを検索して追加" autocomplete="off" autocapitalize="off">
+    <div id="suggest" class="suggest" hidden></div>
+  </div>
+  <div id="channels" class="channels"></div>
+  <p class="hint">長押しでドラッグして並べ替え・左にスワイプで削除</p>
+</section>
+
+<!-- live player -->
+<section id="player" class="view" hidden>
+  <div class="stage">
+    <div class="video"><div id="liveEmbed" class="embed"></div></div>
+    <div class="bar">
+      <button class="icon" data-back>←</button>
+      <span id="liveName" class="name"></span>
+      <button id="btnMode" class="link small"></button>
+      <button id="btnLiveRefresh" class="link small">更新</button>
+      <button class="link small" data-settings>設定</button>
+    </div>
+    <div class="splitter" id="splitter"><i></i></div>
+    <div class="chat" id="liveChat">
+      <button class="fold" id="btnFold" title="チャットを畳む">»</button>
+      <div class="chat-status" id="liveStatus"></div>
+      <div class="chat-list" id="liveList"></div>
+      <button class="latest" hidden>最新へ</button>
+    </div>
+    <button class="unfold" id="btnUnfold" hidden>«</button>
+  </div>
+</section>
+
+<!-- archive list -->
+<section id="archives" class="view" hidden>
+  <header class="top">
+    <button class="icon" data-back>←</button>
+    <h1 id="archTitle" class="grow"></h1>
+  </header>
+  <p id="archStatus" class="hint">読み込み中…</p>
+  <div id="archList" class="channels"></div>
+</section>
+
+<!-- archive player -->
+<section id="vod" class="view" hidden>
+  <div class="stage">
+    <div class="video"><div id="vodEmbed" class="embed"></div></div>
+    <div class="bar">
+      <button class="icon" data-back>←</button>
+      <span id="vodName" class="name"></span>
+    </div>
+    <div class="chat" id="vodChat">
+      <div class="chat-status" id="vodStatus"></div>
+      <div class="chat-list" id="vodList"></div>
+      <button class="latest" hidden>最新へ</button>
+    </div>
+  </div>
+</section>
+
+<!-- settings -->
+<section id="settings" class="view" hidden>
+  <header class="top">
+    <button class="icon" data-back>←</button>
+    <h1 class="grow">設定</h1>
+  </header>
+  <div class="form">
+    <h2>ログイン</h2>
+    <p class="note">サブスク中のチャンネルを広告なしで見るには、このアプリの中でTwitchにログインしてください。動画の部分に出るログインボタンからでもできます。</p>
+    <a class="btn" href="https://www.twitch.tv/login" target="_blank" rel="noopener">Twitchにログイン</a>
+
+    <h2>チャット</h2>
+    <label class="slider">文字サイズ(縦画面)<span data-out="fontP"></span><input type="range" min="10" max="24" step="1" data-key="fontP"></label>
+    <label class="slider">文字サイズ(横画面)<span data-out="fontL"></span><input type="range" min="10" max="24" step="1" data-key="fontL"></label>
+    <label class="slider">チャット遅延<span data-out="delay"></span><input type="range" min="0" max="30" step="1" data-key="delay"></label>
+
+    <h2>横画面</h2>
+    <label class="slider">チャットの幅<span data-out="chatWidth"></span><input type="range" min="15" max="65" step="1" data-key="chatWidth"></label>
+    <label class="slider">重ねるときの背景の濃さ<span data-out="overlayAlpha"></span><input type="range" min="0" max="100" step="5" data-key="overlayAlpha"></label>
+
+    <h2>NGワード(部分一致)</h2>
+    <p class="note">1行に1つ。この言葉を含むコメントは丸ごと消えます</p>
+    <textarea data-list="ngWords" rows="4"></textarea>
+    <h2>NGワード(完全一致)</h2>
+    <p class="note">1行に1つ。コメント全体がこの言葉と同じときだけ消えます</p>
+    <textarea data-list="ngExact" rows="4"></textarea>
+    <h2>NGユーザー</h2>
+    <p class="note">1行に1人(ユーザーID)。チャットのコメント長押しでも追加できます</p>
+    <textarea data-list="ngUsers" rows="4"></textarea>
+
+    <details class="fold-section">
+      <summary id="ngPlayersTitle">NG選手</summary>
+      <label class="switch"><input type="checkbox" id="ngPlayersOn"> 選手名を含むコメントを非表示</label>
+      <p class="note">1行に1人。部分一致で、名前を含むコメントは丸ごと消えます。消したり足したりもできます</p>
+      <textarea data-list="ngPlayers" rows="10"></textarea>
+    </details>
+  </div>
+</section>
+
+<div id="toast" class="toast" hidden></div>
+<script src="app.js"></script>
+</body>
+</html>
