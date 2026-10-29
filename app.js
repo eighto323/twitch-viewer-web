@@ -378,7 +378,20 @@ leaveHooks.player = () => {
   liveTimers.forEach(clearTimeout); liveTimers = [];
   $('#liveEmbed').innerHTML = ''; livePlayer = null;
 };
+/* Twitch sometimes goes quiet without closing: ask, and reconnect if there is no answer */
+let lastRx = 0, pinged = false;
+setInterval(() => {
+  if (current !== 'player' || !irc) return;
+  const quiet = Date.now() - lastRx;
+  if (quiet > 75000 && pinged) { pinged = false; connectChat(); }
+  else if (quiet > 60000 && !pinged && irc.readyState === 1) { pinged = true; irc.send('PING :tmi.twitch.tv'); }
+}, 5000);
+document.addEventListener('visibilitychange', () => {
+  if (!document.hidden && current === 'player' && Date.now() - lastRx > 45000) connectChat();
+});
+
 function connectChat() {
+  lastRx = Date.now(); pinged = false;
   if (irc) { irc.onclose = null; irc.close(); }
   liveTimers.forEach(clearTimeout); liveTimers = [];
   liveChat.clear();
@@ -394,7 +407,7 @@ function connectChat() {
     $('#liveStatus').textContent = 'チャットに接続しました(読み取り専用)';
     setTimeout(() => { if (liveChat.list.childElementCount) $('#liveStatus').textContent = ''; }, 3000);
   };
-  ws.onmessage = ev => ev.data.split('\r\n').forEach(line => line && handleIrc(ws, line));
+  ws.onmessage = ev => { lastRx = Date.now(); pinged = false; ev.data.split('\r\n').forEach(line => line && handleIrc(ws, line)); };
   ws.onclose = () => { if (irc === ws) { $('#liveStatus').textContent = 'チャットに再接続しています…'; setTimeout(() => irc === ws && connectChat(), 3000); } };
 }
 function handleIrc(ws, line) {
