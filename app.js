@@ -618,3 +618,35 @@ syncPlayers();
 refreshHome();
 setInterval(() => { if (current === 'home' && !document.hidden) refreshHome(); }, 60000);
 document.addEventListener('visibilitychange', () => { if (!document.hidden && current === 'home') refreshHome(); });
+
+/* ---- zoom the live video: 拡大 button cycles 1x/1.5x/2x/3x; while zoomed, drag to move and pinch to zoom ---- */
+(() => {
+  const embed = $('#liveEmbed'), pad = $('#zoomPad'), btn = $('#btnZoom');
+  let z = 1, x = 0, y = 0;
+  const clamp = () => {
+    const r = pad.parentElement.getBoundingClientRect();
+    const mx = r.width * (z - 1) / 2, my = r.height * (z - 1) / 2;
+    x = Math.max(-mx, Math.min(mx, x)); y = Math.max(-my, Math.min(my, y));
+  };
+  const apply = () => {
+    clamp();
+    embed.style.transform = z === 1 ? '' : `translate(${x}px,${y}px) scale(${z})`;
+    pad.hidden = z === 1;   // at 1x the Twitch player gets the taps as usual
+    btn.textContent = z === 1 ? '拡大' : `×${z.toFixed(1).replace('.0', '')}`;
+  };
+  btn.onclick = () => { const steps = [1, 1.5, 2, 3]; z = steps[(steps.indexOf(z) + 1) % steps.length] || 1; if (z === 1) x = y = 0; apply(); showBarBriefly(); };
+  let start = null, pinch = null, lastTap = 0;
+  const dist = t => Math.hypot(t[0].clientX - t[1].clientX, t[0].clientY - t[1].clientY);
+  pad.addEventListener('touchstart', e => {
+    if (e.touches.length === 2) pinch = { d: dist(e.touches), z };
+    else { start = { cx: e.touches[0].clientX, cy: e.touches[0].clientY, x, y };
+      const now = Date.now(); if (now - lastTap < 300) { z = 1; x = y = 0; apply(); } lastTap = now; }
+  }, { passive: true });
+  pad.addEventListener('touchmove', e => {
+    e.preventDefault();
+    if (pinch && e.touches.length === 2) { z = Math.max(1, Math.min(4, pinch.z * dist(e.touches) / pinch.d)); apply(); }
+    else if (start && e.touches.length === 1) { x = start.x + e.touches[0].clientX - start.cx; y = start.y + e.touches[0].clientY - start.cy; apply(); }
+  }, { passive: false });
+  pad.addEventListener('touchend', e => { if (e.touches.length < 2) pinch = null; if (!e.touches.length) start = null; });
+  leaveHooks.player = (old => () => { z = 1; x = y = 0; apply(); old && old(); })(leaveHooks.player);
+})();

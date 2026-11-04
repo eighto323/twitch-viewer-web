@@ -124,3 +124,8 @@ textarea { width: 100%; font: inherit; font-size: 15px; color: var(--text); back
 .sheet .row { display: flex; justify-content: flex-end; gap: 8px; }
 .sheet .row button { padding: 8px 14px; border-radius: 8px; }
 .sheet .ok { background: var(--accent); color: #fff; }
+
+/* zoom */
+.video { overflow: hidden; }
+#liveEmbed { transform-origin: 50% 50%; transition: transform .1s; }
+.zoompad { position: absolute; inset: 0; z-index: 2; touch-action: none; }

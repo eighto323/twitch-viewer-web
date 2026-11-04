@@ -36,11 +36,12 @@
 <!-- live player -->
 <section id="player" class="view" hidden>
   <div class="stage">
-    <div class="video"><div id="liveEmbed" class="embed"></div></div>
+    <div class="video" id="liveVideo"><div id="liveEmbed" class="embed"></div><div id="zoomPad" class="zoompad" hidden></div></div>
     <div class="bar">
       <button class="icon" data-back>←</button>
       <span id="liveName" class="name"></span>
       <button id="btnMode" class="link small"></button>
+      <button id="btnZoom" class="link small">拡大</button>
       <button id="btnLiveRefresh" class="link small">更新</button>
       <button class="link small" data-settings>設定</button>
     </div>
