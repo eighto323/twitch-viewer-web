@@ -22,6 +22,13 @@ const prefs = new Proxy({}, {
   set: (_, k, v) => { store.set('p_' + k, v); return true; },
 });
 
+/* ---------- default NG words (added once, kept if the user deletes them later) ---------- */
+const DEFAULT_NG_WORDS = ["配信者", "もさり", "もっちゃま", "もっさま", "おもんね", "よわ", "よっわ", "おもんな", "しょーもな", "まけ", "負け", "女", "gg", "GG", "なんよ", "クカ", "くか", "トン", "トンかっさん", "溝口", "みぞ", "溝", "ニューヨーク", "4", "パンツマン", "配信", "中学生", "スペル", "衛門", "日本人", "視聴者", "G", "コメ欄", "コメント欄", "コメント", "ブロック", "ゴースティング", "キック", "kick", "銃", "コンプ", "ハズレ", "枠", "いや", "いや？", "ごっど", "CR", "同説", "梨", "コレコレ", "だるま", "同接", "万人", "GDP", "子供", "衣", "とんかつ", "とんかっさん", "かっさん", "彼女", "結婚", "釈迦", "GON", "gon", "ゴン", "蛆虫"];
+if (!store.get('ngDefaultsV1', false)) {
+  prefs.ngWords = [...new Set([...prefs.ngWords, ...DEFAULT_NG_WORDS])];
+  store.set('ngDefaultsV1', true);
+}
+
 /* ---------- shared NG player list (same file the Android app uses) ---------- */
 async function syncPlayers() {
   try {
