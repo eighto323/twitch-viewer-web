@@ -641,7 +641,7 @@ document.addEventListener('visibilitychange', () => { if (!document.hidden && cu
     pad.hidden = z === 1;   // at 1x the Twitch player gets the taps as usual
     btn.textContent = z === 1 ? '拡大' : `×${z.toFixed(1).replace('.0', '')}`;
   };
-  btn.onclick = () => { const steps = [1, 1.5, 2, 3]; z = steps[(steps.indexOf(z) + 1) % steps.length] || 1; if (z === 1) x = y = 0; apply(); showBarBriefly(); };
+  btn.onclick = () => { const steps = [1, 1.5, 2, 3, 4, 6]; z = steps[(steps.indexOf(z) + 1) % steps.length] || 1; if (z === 1) x = y = 0; apply(); showBarBriefly(); };
   let start = null, pinch = null, lastTap = 0;
   const dist = t => Math.hypot(t[0].clientX - t[1].clientX, t[0].clientY - t[1].clientY);
   pad.addEventListener('touchstart', e => {
@@ -651,7 +651,7 @@ document.addEventListener('visibilitychange', () => { if (!document.hidden && cu
   }, { passive: true });
   pad.addEventListener('touchmove', e => {
     e.preventDefault();
-    if (pinch && e.touches.length === 2) { z = Math.max(1, Math.min(4, pinch.z * dist(e.touches) / pinch.d)); apply(); }
+    if (pinch && e.touches.length === 2) { z = Math.max(1, Math.min(6, pinch.z * dist(e.touches) / pinch.d)); apply(); }
     else if (start && e.touches.length === 1) { x = start.x + e.touches[0].clientX - start.cx; y = start.y + e.touches[0].clientY - start.cy; apply(); }
   }, { passive: false });
   pad.addEventListener('touchend', e => { if (e.touches.length < 2) pinch = null; if (!e.touches.length) start = null; });
