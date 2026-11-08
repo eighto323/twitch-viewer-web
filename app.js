@@ -657,3 +657,24 @@ document.addEventListener('visibilitychange', () => { if (!document.hidden && cu
   pad.addEventListener('touchend', e => { if (e.touches.length < 2) pinch = null; if (!e.touches.length) start = null; });
   leaveHooks.player = (old => () => { z = 1; x = y = 0; apply(); old && old(); })(leaveHooks.player);
 })();
+
+/* add an NG word (partial match) while an archive keeps playing */
+$('#btnVodNg').onclick = () => {
+  const s = document.createElement('div');
+  s.className = 'sheet';
+  s.innerHTML = '<div><h3>NGワード(部分一致)を追加</h3><p>この言葉を含むコメントを消します</p><input type="text" style="width:100%;font-size:16px;padding:10px;margin-bottom:14px;border-radius:8px;border:1px solid var(--line);background:var(--surface);color:var(--text)" placeholder="例: おもんな"><div class="row"><button class="no">キャンセル</button><button class="ok">追加</button></div></div>';
+  const inp = $('input', s);
+  const done = () => s.remove();
+  $('.no', s).onclick = done;
+  const add = () => {
+    const w = inp.value.trim();
+    if (w && !prefs.ngWords.includes(w)) prefs.ngWords = [...prefs.ngWords, w];
+    vodFilter = makeFilter(); liveFilter = makeFilter();
+    const n = norm(w);
+    if (n) { vodChat.removeWhere(el => norm(el.textContent).includes(n)); vs.pending = vs.pending.filter(c => !vodFilter(c)); }
+    done(); if (w) toast(`「${w}」を追加しました`);
+  };
+  $('.ok', s).onclick = add;
+  inp.addEventListener('keydown', e => { if (e.key === 'Enter') add(); });
+  document.body.append(s); inp.focus();
+};
