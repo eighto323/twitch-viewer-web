@@ -385,8 +385,14 @@ function newLivePlayer(ch, opts) {
       setTimeout(() => { if (livePlayer === p) p.play(); busy = false; }, 300);
     } catch { busy = false; }
   };
-  p.addEventListener(Twitch.Player.PLAYING, () => liveTimers.push(setTimeout(catchUp, 3000)));
-  const iv = setInterval(() => { if (livePlayer !== p) clearInterval(iv); else catchUp(); }, 30000);
+  // check often right after opening (the PLAYING event is not reliable), then every 30s
+  const started = Date.now();
+  let last = 0;
+  const iv = setInterval(() => {
+    if (livePlayer !== p) { clearInterval(iv); return; }
+    const t = Date.now();
+    if (t - started > 3000 && (t - started < 40000 || t - last > 30000)) { last = t; catchUp(); }
+  }, 2000);
   return p;
 }
 
