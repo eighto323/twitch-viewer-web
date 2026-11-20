@@ -370,13 +370,33 @@ matchMedia('(orientation: landscape)').addEventListener('change', () => { applyC
 let livePlayer = null, irc = null, liveCh = null, liveFilter = null, folded = false, liveTimers = [];
 const liveChat = new ChatView($('#liveList'), $('#liveStatus'), m => askNgUser(m, liveChat));
 
+/* The embedded player starts ~6s behind live and only creeps closer very slowly, while twitch.tv
+   itself sits ~1.5s behind. Pausing and playing again makes it jump to the live edge, so do that
+   once playback has settled (and again whenever it has drifted far behind). */
+function newLivePlayer(ch, opts) {
+  const p = new Twitch.Player('liveEmbed', Object.assign({ channel: ch, parent: [PARENT], width: '100%', height: '100%', autoplay: true }, opts));
+  let busy = false;
+  const catchUp = () => {
+    if (busy || livePlayer !== p) return;
+    try {
+      const s = p.getPlaybackStats();
+      if (p.isPaused() || !s || !(s.bufferSize > 3)) return;
+      busy = true; p.pause();
+      setTimeout(() => { if (livePlayer === p) p.play(); busy = false; }, 300);
+    } catch { busy = false; }
+  };
+  p.addEventListener(Twitch.Player.PLAYING, () => liveTimers.push(setTimeout(catchUp, 3000)));
+  const iv = setInterval(() => { if (livePlayer !== p) clearInterval(iv); else catchUp(); }, 30000);
+  return p;
+}
+
 function openLive(ch) {
   liveCh = ch; folded = false;
   $('#liveName').textContent = nameOf(ch);
   show('player');
   applyChatStyle(); applyMode();
   $('#liveEmbed').innerHTML = '';
-  livePlayer = new Twitch.Player('liveEmbed', { channel: ch, parent: [PARENT], width: '100%', height: '100%', autoplay: true, muted: false });
+  livePlayer = newLivePlayer(ch, { muted: false });
   connectChat();
   showBarBriefly();
 }
@@ -484,7 +504,7 @@ $('#btnUnfold').onclick = () => { folded = false; applyMode(); };
 $('#btnLiveRefresh').onclick = () => {
   connectChat();
   try {
-    if (!livePlayer || livePlayer.isPaused()) { $('#liveEmbed').innerHTML = ''; livePlayer = new Twitch.Player('liveEmbed', { channel: liveCh, parent: [PARENT], width: '100%', height: '100%', autoplay: true }); }
+    if (!livePlayer || livePlayer.isPaused()) { $('#liveEmbed').innerHTML = ''; livePlayer = newLivePlayer(liveCh); }
   } catch {}
   toast('更新しました');
 };
