@@ -685,7 +685,7 @@ document.addEventListener('visibilitychange', () => { if (!document.hidden && cu
 })();
 
 /* add an NG word (partial match) while an archive keeps playing */
-$('#btnVodNg').onclick = () => {
+$('#btnLiveNg').onclick = $('#btnVodNg').onclick = () => {
   const s = document.createElement('div');
   s.className = 'sheet';
   s.innerHTML = '<div><h3>NGワード(部分一致)を追加</h3><p>この言葉を含むコメントを消します</p><input type="text" style="width:100%;font-size:16px;padding:10px;margin-bottom:14px;border-radius:8px;border:1px solid var(--line);background:var(--surface);color:var(--text)" placeholder="例: おもんな"><div class="row"><button class="no">キャンセル</button><button class="ok">追加</button></div></div>';
@@ -697,7 +697,7 @@ $('#btnVodNg').onclick = () => {
     if (w && !prefs.ngWords.includes(w)) prefs.ngWords = [...prefs.ngWords, w];
     vodFilter = makeFilter(); liveFilter = makeFilter();
     const n = norm(w);
-    if (n) { vodChat.removeWhere(el => norm(el.textContent).includes(n)); vs.pending = vs.pending.filter(c => !vodFilter(c)); }
+    if (n) { vodChat.removeWhere(el => norm(el.textContent).includes(n)); liveChat.removeWhere(el => norm(el.textContent).includes(n)); vs.pending = vs.pending.filter(c => !vodFilter(c)); }
     done(); if (w) toast(`「${w}」を追加しました`);
   };
   $('.ok', s).onclick = add;
